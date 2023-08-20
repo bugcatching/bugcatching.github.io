@@ -4,10 +4,10 @@
 <style>
   h1{
     color: black;
-    font-size:12;
+    font-size:12px;
   }
   p{
-    color: pink;
+    color: #FF5733;
   }
   l{
     color: blue;
@@ -15,13 +15,26 @@
   
 </style>
 <h1>personal portfolio</h1>
-<p>computer science solutions</p>
-<p>digital art</p>
-<p>other art</p>
-<p>games</p>
-<p>writing</p>
-<p>apps</p>
-<p>resume</p>
+<p id="stuff">computer science solutions</p>
+<p id="things">digital art</p>
+<p id="stuff">other art</p>
+<p id="things">games</p>
+<p id="stuff">writing</p>
+<p id="things">apps</p>
+<p id="stuff">resume</p>
+
+<script>
+  for(let i =0;i<100;i++){
+    stuff = document.getElementById("stuff");
+    things = document.getElementById("things");
+
+    let temp;
+    temp = stuff;
+    stuff = things;
+    things = stuff;
+    
+  }
+</script>
   
 <link></link>
 </body>
