@@ -27,12 +27,20 @@
     const stuffParagraphs = document.querySelectorAll("#stuff");
     const thingsParagraphs = document.querySelectorAll("#things");
 
-    // Swap the contents of the paragraphs
-    for (let i = 0; i < 1000; i++) {
-      const temp = stuffParagraphs[i].textContent;
-      stuffParagraphs[i].textContent = thingsParagraphs[i].textContent;
-      thingsParagraphs[i].textContent = temp;
+    let iteration = 0;
+
+    function swapContents() {
+      for (let i = 0; i < stuffParagraphs.length; i++) {
+        const temp = stuffParagraphs[i].textContent;
+        stuffParagraphs[i].textContent = thingsParagraphs[i].textContent;
+        thingsParagraphs[i].textContent = temp;
+      }
+      iteration++;
+      console.log(`Iteration ${iteration}`);
     }
+
+    // Swap contents every 1000ms (1 second)
+    setInterval(swapContents, 1000);
 </script>
   
 <link></link>
