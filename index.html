@@ -24,16 +24,15 @@
 <p id="stuff">resume</p>
 
 <script>
-  for(let i =0;i<100;i++){
-    stuff = document.getElementById("stuff");
-    things = document.getElementById("things");
+    const stuffParagraphs = document.querySelectorAll("#stuff");
+    const thingsParagraphs = document.querySelectorAll("#things");
 
-    let temp;
-    temp = stuff;
-    stuff = things;
-    things = stuff;
-    
-  }
+    // Swap the contents of the paragraphs
+    for (let i = 0; i < stuffParagraphs.length; i++) {
+      const temp = stuffParagraphs[i].textContent;
+      stuffParagraphs[i].textContent = thingsParagraphs[i].textContent;
+      thingsParagraphs[i].textContent = temp;
+    }
 </script>
   
 <link></link>
