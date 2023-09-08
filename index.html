@@ -3,69 +3,12 @@
 <body>
 
 <h1>personal portfolio</h1>
-<p id="stuff">computer science solutions</p>
-<p id="things">digital art</p>
-<p id="stuff">other art</p>
-<p id="things">games</p>
-<p id="stuff">writing</p>
-<p id="things">apps</p>
-<p id="stuff">resume</p>
-<canvas id="dragonCanvas" width="800" height="600"></canvas>
+<img src="me.png">
+<p>resume</p>
+<p>computer science solutions</p>
+<p>computer science solutions</p>
 
-<script>
-    const stuffParagraphs = document.querySelectorAll("#stuff");
-    const thingsParagraphs = document.querySelectorAll("#things");
 
-    let iteration = 0;
-
-    function swapContents() {
-      for (let i = 0; i < stuffParagraphs.length; i++) {
-        const temp = stuffParagraphs[i].textContent;
-        stuffParagraphs[i].textContent = thingsParagraphs[i].textContent;
-        thingsParagraphs[i].textContent = temp;
-      }
-      iteration++;
-      console.log(`Iteration ${iteration}`);
-    }
-
-    // Swap contents every 1000ms (1 second)
-    setInterval(swapContents, 1000);
-
-  
-    const canvas = document.getElementById("dragonCanvas");
-    const ctx = canvas.getContext("2d");
-    
-    const iterations = 15; // Number of iterations for the fractal
-    const length = 5; // Length of each line segment
-    const angle = Math.PI / 2; // Angle for turning
-    
-    let currentIteration = 0;
-    let currentDirection = "right"; // Starting direction
-    
-    function drawDragonCurve() {
-      const dragonLength = Math.pow(2, currentIteration);
-      
-      ctx.beginPath();
-      
-      if (currentDirection === "right") {
-        ctx.moveTo(10, canvas.height / 2);
-        ctx.lineTo(10 + dragonLength * length, canvas.height / 2);
-        currentDirection = "up";
-      } else if (currentDirection === "up") {
-        ctx.moveTo(10 + dragonLength * length, canvas.height / 2);
-        ctx.lineTo(10 + (dragonLength - 1) * length, canvas.height / 2 - dragonLength * length);
-        currentDirection = "right";
-      }
-      
-      ctx.stroke();
-      
-      currentIteration++;
-      if (currentIteration <= iterations) {
-        setTimeout(drawDragonCurve, 500); // Change the timeout value to control the animation speed
-      }
-    }
-    
-    drawDragonCurve();  
 <link></link>
 </body>
 </html>
