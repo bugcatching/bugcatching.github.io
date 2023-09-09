@@ -1,6 +1,34 @@
 #include <ctype.h>
 #include <string.h>
 
+#define DEBUG 1
+#define DEBUG_PRINT(fmt, ...)                                                  \
+  \ 
+    do {                                                                       \
+    if (DEBUG)                                                                 \
+      fprintf(stderr, "%s:%d:%s(): " fmt, __FILE__, __LINE__,                  \
+              __func__ __VA_OPT__(, ) __VA_ARGS__);                            \
+  }                                                                            \
+  while (0)
+
+#define SWAP(x, y, T)                                                          \
+  do {                                                                         \
+    T tmp = (*x);                                                              \
+    (*x) = (*y);                                                               \
+    (*y) = tmp;                                                                \
+  } while (0)
+
+#define NUM_ELEMS(x) ((sizeof(x)) / (sizeof((x)[0])))
+
+#define MAX_Q_SIZE 500
+
+inline void inlineSwap(int *x, int *y) {
+  int temp = *x;
+  *x = *y;
+  *y = temp;
+}
+
+
 void stripPunctuation(char *s, char *o) {
   int j = 0;
 
