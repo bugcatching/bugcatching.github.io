@@ -1,2 +1,2 @@
-# [Personal website of William Rech](bugcatching.github.io)
+# [Personal website of William Rech](https://bugcatching.github.io)
 
