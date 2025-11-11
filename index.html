@@ -2,6 +2,7 @@
 <html>
 <head> <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
 </head>
+  
   <!--
   Welcome to my garden on the internet.  
   
@@ -129,6 +130,101 @@ https://asciiart.website/index.php?art=objects/buildings
     </ul>-->
     
     <p>Copyright (c) 2023 William Rech</p>
+<script type="module">
+  import * as THREE from 'https://unpkg.com/three@0.165.0/build/three.module.js';
+  import { OrbitControls } from 'https://unpkg.com/three@0.165.0/examples/jsm/controls/OrbitControls.js';
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 100);
+  camera.position.set(0, 0, 4);
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(innerWidth, innerHeight);
+  renderer.setClearColor(0x000000, 1);
+  document.body.appendChild(renderer.domElement);
+
+  const controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+
+  const particleCount = 800;
+  const geometry = new THREE.PlaneGeometry(0.05, 0.05);
+  const material = new THREE.MeshBasicMaterial({
+    color: 0x33aaff,
+    transparent: true,
+    opacity: 0.85,
+    depthWrite: false,
+    side: THREE.DoubleSide,
+  });
+
+  const particles = new THREE.InstancedMesh(geometry, material, particleCount);
+  scene.add(particles);
+
+  const dummy = new THREE.Object3D();
+  for (let i = 0; i < particleCount; i++) {
+    const r = 0.6 + Math.random() * 0.2;
+    const theta = Math.random() * Math.PI * 2;
+    const phi = Math.acos(2 * Math.random() - 1);
+    dummy.position.set(
+      r * Math.sin(phi) * Math.cos(theta),
+      r * Math.sin(phi) * Math.sin(theta),
+      r * Math.cos(phi)
+    );
+    dummy.updateMatrix();
+    particles.setMatrixAt(i, dummy.matrix);
+  }
+  particles.instanceMatrix.needsUpdate = true;
+
+  const shellGeom = new THREE.SphereGeometry(1.0, 64, 64);
+  const shellMat = new THREE.MeshPhysicalMaterial({
+    transmission: 1.0,
+    thickness: 0.5,
+    roughness: 0.05,
+    ior: 1.2,
+    clearcoat: 1,
+    clearcoatRoughness: 0.1,
+    envMapIntensity: 2,
+    side: THREE.DoubleSide,
+  });
+  const transmissionMesh = new THREE.Mesh(shellGeom, shellMat);
+  scene.add(transmissionMesh);
+
+  transmissionMesh.add(particles);
+
+  function updateBillboards() {
+    const view = camera.matrixWorldInverse;
+    const rotation = new THREE.Matrix4().extractRotation(view);
+    const inverse = new THREE.Matrix4().copy(rotation).invert();
+    const m = new THREE.Matrix4();
+    for (let i = 0; i < particleCount; i++) {
+      particles.getMatrixAt(i, m);
+      const pos = new THREE.Vector3().setFromMatrixPosition(m);
+      dummy.position.copy(pos);
+      dummy.quaternion.setFromRotationMatrix(inverse);
+      dummy.updateMatrix();
+      particles.setMatrixAt(i, dummy.matrix);
+    }
+    particles.instanceMatrix.needsUpdate = true;
+  }
+
+  function animate() {
+    requestAnimationFrame(animate);
+    transmissionMesh.rotation.y += 0.01;
+    transmissionMesh.rotation.x += 0.005;
+    updateBillboards();
+    controls.update();
+    renderer.render(scene, camera);
+  }
+
+  animate();
+
+  window.addEventListener('resize', () => {
+    camera.aspect = innerWidth / innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth, innerHeight);
+  });
+</script>
+</body>
+</html>
 
 </body>
 </html>
