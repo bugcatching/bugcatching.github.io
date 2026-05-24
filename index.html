@@ -67,9 +67,16 @@ https://asciiart.website/index.php?art=objects/buildings
         ul {
             margin-bottom: 16px;
             padding-left: 20px;
+            list-style: none;
         }
         li {
-            margin-bottom: 10px;
+            margin-bottom: 8px;
+            padding-left: 1.2em;
+            text-indent: -1.2em;
+        }
+        li::before {
+            content: "\2022";
+            padding-right: 8px;
         }
         a {
             color: #0066cc;
@@ -85,6 +92,7 @@ https://asciiart.website/index.php?art=objects/buildings
 
 <div id="content">
     <h1>William Rech</h1>
+    <p>Game Designer, Amateur Researcher, and general Software Specialist</p>
     <img src="me.png" alt="William Rech">
     <p>
         <a href="resume1.pdf" target="_blank">personal resumé</a><br>
@@ -119,30 +127,42 @@ https://asciiart.website/index.php?art=objects/buildings
 
     </ul>  
 
-    <h2>Interests</h2>
+    <h2>Research Interests</h2>
+    <h4>Networking</h4>
+    <ul>
+        <li>Extreme high performance, low latency multiplayer netcode for large lobbies</li>
+        <li>Cloud object communication and storage systems</li>
+    </ul>  
     <h4>Machine Learning</h4>
     <ul>
-        <li>Can we construct a Gödel machine whose program synthesis is based on stochastic search and natural selection instead of formal proofs?</li>
-        <li>Can we define a useful inverse reward function by having an agent move away from a goal rather than towards one?</li>
-        <li>Could clustering algorithms use fractals to search for related data points by taking advantage of self-similarity and Hausdorff dimensionality?</li>
+        <li>Construction of a Gödel machine whose program synthesis is based on stochastic search and natural selection instead of formal proofs</li>
+        <li>Inverse Reinforcement Learning for specialised and generalised problem solving</li>
+        <li>Clustering of non-linear datasets and other global optimisation problems</li>
     </ul>  
     <h4>Information Theory</h4>
     <ul>
-        <li>Can we encode large files (>2MB) with an easily decodable error-correcting format that fits in a space about the size of a QR code?</li>
-        <li>What is the inverse relationship between compression algorithms and the loglog algorithm?</li>
+        <li>Encoding large files (&gt;2MB) with an easily decodable error-correcting format that fits in a space about the size of a QR code</li>
+        <li>Entropy analysis and optimisation, LogLog</li>
+    </ul>  
+    <h4>Information Security</h4>
+    <ul>
+        <li>Fast anomaly detection with XDP and point process analysis of the public internet using TCP-SYN</li>
+        <li>Geopolitical security, international threat modelling</li>
+        <li>Self-modifying attacks and obfuscations to protect secrets</li>
     </ul>  
 
-    <!--<h2>Writing</h2>
-    <ul>
-        <li>
-            <a href="/writing/fleischman.html">Contra Fleischman on Animal Harm</a>
-        </li>
-    </ul>-->
     
     <p>Copyright (c) 2023 William Rech</p>
 </div>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.170.0/build/three.module.js"
+  }
+}
+</script>
 <script type="module">
-  import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js';
+  import * as THREE from 'three';
 
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 100);
@@ -194,7 +214,7 @@ https://asciiart.website/index.php?art=objects/buildings
   const shellGeom = new THREE.SphereGeometry(1.0, 64, 64);
   const shellMat = new THREE.MeshPhysicalMaterial({
     transmission: 1.0,
-    //thickness: 0.5,
+    thickness: 0.5,
     roughness: 0.05,
     ior: 1.2,
     clearcoat: 1,
