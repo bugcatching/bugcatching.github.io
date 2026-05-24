@@ -87,24 +87,26 @@ https://asciiart.website/index.php?art=objects/buildings
         .media-row img {
             display: block;
         }
-        #model-container {
+        .title-row {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        .title-row h1 {
+            margin: 0;
+            text-align: center;
+            flex: 1;
+        }
+        .model-viewer {
             width: 100px;
             height: 100px;
+            flex-shrink: 0;
         }
-        #model-container canvas {
+        .model-viewer canvas {
             display: block;
             width: 100% !important;
             height: 100% !important;
-        }
-        .trace-box {
-            font-family: 'Courier New', monospace;
-            font-size: 13px;
-            line-height: 1.4;
-            white-space: pre-wrap;
-            overflow-x: auto;
-            flex: 1;
-            min-width: 0;
-            margin: 0;
         }
         a {
             color: #0066cc;
@@ -119,110 +121,64 @@ https://asciiart.website/index.php?art=objects/buildings
 <body>
 
 <div id="content">
-    <h1>William Rech</h1>
-    <p>Game Designer, Amateur Researcher, and general Software Specialist</p>
+    <div class="title-row">
+      <div id="model-left" class="model-viewer"></div>
+      <div>
+        <h1>William Rech</h1>
+        <p>Game Designer, Amateur Researcher, and general Software Specialist</p>
+      </div>
+      <div id="model-right" class="model-viewer"></div>
+    </div>
     <div class="media-row">
       <img src="me.png" alt="William Rech" class="portrait">
-      <div id="model-container"></div>
     </div>
     <p>
         <a href="resume1.pdf" target="_blank">personal resumé</a><br>
     </p>
-    <pre id="trace-output" class="trace-box">traceroute to github.com...</pre>
-
-    <h2>Projects</h2>
-    <ul>
-        <li>
-            <a href="https://dbuf.itch.io/rangoon">Rangoon</a> - a short platformer game made in Go and compiled to webassembly
-        </li> 
-
-        <li>
-            <a href="/projects/whimsymeadow.html">Whimsy Meadow</a> - a fully online multiplayer game written from scratch in Go (backend) and Three.js (frontend)
-        </li> 
-        <li>
-            <a href="/projects/pets.html">Kaizomorph: Pets</a> - a simple clicker game written in Go
-        </li> 
-        <li>
-            <a href="/projects/dokisort.html">Dokisort</a> - a sorting algorithm visualizer written in Python
-        </li> 
-        <li>
-            <a href="/projects/protobuf.html">dreambuffer</a> - a protobuf-based game object storage
-        </li> 
-        <li>
-            <a href="/projects/leetcodec.html">leetCodeC</a> - solutions to various leetcode problem sets in C
-        </li> 
-        <li>
-            <a href="/projects/okku.html">Fantasy of Okku</a> - a TTRPG
-        </li> 
-
-    </ul>  
-
-    <h2>Research Interests</h2>
-    <h4>Networking</h4>
-    <ul>
-        <li>Extreme high performance, low latency multiplayer netcode for large lobbies</li>
-        <li>Cloud object communication and storage systems</li>
-    </ul>  
-    <h4>Machine Learning</h4>
-    <ul>
-        <li>Construction of a Gödel machine whose program synthesis is based on stochastic search and natural selection instead of formal proofs</li>
-        <li>Inverse Reinforcement Learning for specialised and generalised problem solving</li>
-        <li>Clustering of non-linear datasets and other global optimisation problems</li>
-    </ul>  
-    <h4>Information Theory</h4>
-    <ul>
-        <li>Encoding large files (&gt;2MB) with an easily decodable error-correcting format that fits in a space about the size of a QR code</li>
-        <li>Entropy analysis and optimisation, LogLog</li>
-    </ul>  
-    <h4>Information Security</h4>
-    <ul>
-        <li>Fast anomaly detection with XDP and point process analysis of the public internet using TCP-SYN</li>
-        <li>Geopolitical security, international threat modelling</li>
-        <li>Self-modifying attacks and obfuscations to protect secrets</li>
-    </ul>  
-
-    
     <p>Copyright (c) 2023 William Rech</p>
 </div>
 <script type="module">
 import * as THREE from 'https://esm.sh/three@0.160.0';
 import { GLTFLoader } from 'https://esm.sh/three@0.160.0/examples/jsm/loaders/GLTFLoader.js';
 
-const container = document.getElementById('model-container');
-const w = container.clientWidth;
-const h = container.clientHeight;
+function setupViewer(id) {
+  const el = document.getElementById(id);
+  const w = el.clientWidth, h = el.clientHeight;
+  const s = new THREE.Scene();
+  const c = new THREE.PerspectiveCamera(45, w / h, 0.1, 100);
+  c.position.set(0, 0, 3);
+  const r = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  r.setSize(w, h);
+  r.setPixelRatio(Math.min(devicePixelRatio, 2));
+  r.setClearColor(0x000000, 0);
+  el.appendChild(r.domElement);
+  s.add(new THREE.AmbientLight(0x404060, 1.5));
+  const k = new THREE.DirectionalLight(0xffffff, 2);
+  k.position.set(2, 3, 4); s.add(k);
+  const f = new THREE.DirectionalLight(0x8888ff, 0.8);
+  f.position.set(-2, 1, -3); s.add(f);
+  new ResizeObserver(() => {
+    const w2 = el.clientWidth, h2 = el.clientHeight;
+    c.aspect = w2 / h2; c.updateProjectionMatrix(); r.setSize(w2, h2);
+  }).observe(el);
+  return { scene: s, camera: c, renderer: r };
+}
 
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 100);
-camera.position.set(0, 0, 3);
+const left = setupViewer('model-left');
+const right = setupViewer('model-right');
+let mL, mR;
 
-const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-renderer.setSize(w, h);
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-renderer.setClearColor(0x000000, 0);
-container.appendChild(renderer.domElement);
-
-const ambient = new THREE.AmbientLight(0x404060, 1.5);
-scene.add(ambient);
-const key = new THREE.DirectionalLight(0xffffff, 2);
-key.position.set(2, 3, 4);
-scene.add(key);
-const fill = new THREE.DirectionalLight(0x8888ff, 0.8);
-fill.position.set(-2, 1, -3);
-scene.add(fill);
-
-let model;
-
-const loader = new GLTFLoader();
-loader.load('/nekoax.glb', (gltf) => {
-  model = gltf.scene;
-  const box = new THREE.Box3().setFromObject(model);
-  const c = box.getCenter(new THREE.Vector3());
-  model.position.sub(c);
-  const s = 2 / box.getSize(new THREE.Vector3().set(1, 1, 1)).length();
-  model.scale.setScalar(s);
-  scene.add(model);
-}, undefined, () => { document.getElementById('model-container').style.display = 'none'; });
+new GLTFLoader().load('/nekoax.glb', (gltf) => {
+  const add = (scene) => {
+    const m = gltf.scene.clone();
+    const box = new THREE.Box3().setFromObject(m);
+    m.position.sub(box.getCenter(new THREE.Vector3()));
+    m.scale.setScalar(2 / box.getSize(new THREE.Vector3()).length());
+    scene.add(m); return m;
+  };
+  mL = add(left.scene);
+  mR = add(right.scene);
+});
 
 let mx = 0, my = 0;
 document.addEventListener('mousemove', (e) => {
@@ -232,61 +188,13 @@ document.addEventListener('mousemove', (e) => {
 
 function animate() {
   requestAnimationFrame(animate);
-  if (model) {
-    model.rotation.y += (mx * Math.PI - model.rotation.y) * 0.06;
-    model.rotation.x += (my * 0.5 - model.rotation.x) * 0.06;
-    model.rotation.z += (-mx * 0.3 - model.rotation.z) * 0.06;
-  }
-  renderer.render(scene, camera);
+  const ry = mx * Math.PI, rx = my * 0.5, rz = -mx * 0.3;
+  if (mL) { mL.rotation.y += (ry - mL.rotation.y) * 0.06; mL.rotation.x += (rx - mL.rotation.x) * 0.06; mL.rotation.z += (rz - mL.rotation.z) * 0.06; }
+  if (mR) { mR.rotation.y += (ry - mR.rotation.y) * 0.06; mR.rotation.x += (rx - mR.rotation.x) * 0.06; mR.rotation.z += (rz - mR.rotation.z) * 0.06; }
+  left.renderer.render(left.scene, left.camera);
+  right.renderer.render(right.scene, right.camera);
 }
 animate();
-
-new ResizeObserver(() => {
-  const w2 = container.clientWidth, h2 = container.clientHeight;
-  camera.aspect = w2 / h2;
-  camera.updateProjectionMatrix();
-  renderer.setSize(w2, h2);
-}).observe(container);
-
-// real network trace
-const out = document.getElementById('trace-output');
-async function trace() {
-  const append = (t) => { out.textContent += t + '\n'; };
-  const host = 'bugcatching.github.io';
-  const target = 'https://' + host + '/';
-
-  out.textContent = 'traceroute to ' + host + '\n\n';
-
-  const dnsResp = await fetch('https://dns.google/resolve?name=' + host + '&type=A');
-  const dnsData = await dnsResp.json();
-  const ips = dnsData.Answer.map(a => a.data);
-  const ip = ips[0] || 'unknown';
-
-  append(' 1  ' + host + ' (' + ip + ')  [DNS]');
-
-  performance.clearResourceTimings();
-  const start = performance.now();
-  await fetch(target);
-  const total = (performance.now() - start).toFixed(2);
-
-  const entries = performance.getEntriesByType('resource');
-  const e = entries.filter(r => r.name.includes(host)).pop();
-
-  if (e) {
-    const dns = (e.domainLookupEnd - e.domainLookupStart).toFixed(2);
-    const tcp = (e.connectEnd - e.connectStart).toFixed(2);
-    const tls = e.secureConnectionStart > 0 ? (e.connectEnd - e.secureConnectionStart).toFixed(2) : null;
-    const ttfb = (e.responseStart - e.requestStart).toFixed(2);
-
-    if (parseFloat(dns) > 0) append(' 2  ' + ip + '  ' + dns + ' ms  [resolve]');
-    if (parseFloat(tcp) > 0) append(' 3  ' + ip + '  ' + tcp + ' ms  [connect]');
-    if (tls && parseFloat(tls) > 0) append(' 4  ' + ip + '  ' + tls + ' ms  [tls]');
-    append(' 5  ' + ip + '  ' + ttfb + ' ms  [ttfb]');
-  }
-
-  append('\nIt took you ' + total + 'ms to get to my website, using the route above.');
-}
-trace();
 </script>
 </body>
 </html>
