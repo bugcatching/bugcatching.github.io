@@ -98,7 +98,7 @@ https://asciiart.website/index.php?art=objects/buildings
         }
         .trace-box {
             font-family: 'Courier New', monospace;
-            font-size: 12px;
+            font-size: 13px;
             line-height: 1.4;
             white-space: pre-wrap;
             overflow-x: auto;
@@ -248,38 +248,43 @@ new ResizeObserver(() => {
   renderer.setSize(w2, h2);
 }).observe(container);
 
-// traceroute
+// real network trace
 const out = document.getElementById('trace-output');
 async function trace() {
-  const append = (t) => { out.textContent += t + '\n'; out.scrollTop = out.scrollHeight; };
-  const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-  const rttStart = performance.now();
-  const resp = await fetch('https://github.com', { mode: 'no-cors' });
-  const rtt = ((performance.now() - rttStart) / 2).toFixed(1);
+  const append = (t) => { out.textContent += t + '\n'; };
+  const host = 'bugcatching.github.io';
+  const target = 'https://' + host + '/';
 
-  const dnsResp = await fetch('https://dns.google/resolve?name=github.com&type=A');
+  out.textContent = 'traceroute to ' + host + '\n\n';
+
+  const dnsResp = await fetch('https://dns.google/resolve?name=' + host + '&type=A');
   const dnsData = await dnsResp.json();
-  const ghIps = dnsData.Answer.map(a => a.data);
+  const ips = dnsData.Answer.map(a => a.data);
+  const ip = ips[0] || 'unknown';
 
-  out.textContent = 'traceroute to github.com (140.82.112.0/20), 64 hops max\n';
+  append(' 1  ' + host + ' (' + ip + ')  [DNS]');
 
-  const hops = [
-    { n: 1, ip: '192.168.' + Math.floor(Math.random()*254+1) + '.' + Math.floor(Math.random()*254+1), ms: (Math.random()*2+0.5).toFixed(1) },
-    { n: 2, ip: '10.' + Math.floor(Math.random()*254+1) + '.' + Math.floor(Math.random()*254+1) + '.' + Math.floor(Math.random()*254+1), ms: (Math.random()*3+2).toFixed(1) },
-    { n: 3, ip: '72.14.' + Math.floor(Math.random()*254+1) + '.' + Math.floor(Math.random()*254+1), ms: (Math.random()*5+5).toFixed(1) },
-    { n: 4, ip: '74.125.' + Math.floor(Math.random()*254+1) + '.' + Math.floor(Math.random()*254+1), ms: (Math.random()*5+10).toFixed(1) },
-    { n: 5, ip: '216.58.' + Math.floor(Math.random()*254+1) + '.' + Math.floor(Math.random()*254+1), ms: (Math.random()*5+15).toFixed(1) },
-    { n: 6, ip: '209.85.' + Math.floor(Math.random()*254+1) + '.' + Math.floor(Math.random()*254+1), ms: (Math.random()*5+20).toFixed(1) },
-    { n: 7, ip: '140.82.' + Math.floor(Math.random()*112+1) + '.' + Math.floor(Math.random()*254+1), ms: (Math.random()*5+25).toFixed(1) },
-    { n: 8, ip: ghIps[0] || '140.82.113.3', ms: rtt },
-  ];
+  performance.clearResourceTimings();
+  const start = performance.now();
+  await fetch(target);
+  const total = (performance.now() - start).toFixed(2);
 
-  for (const h of hops) {
-    await sleep(40 + Math.random() * 60);
-    const stars = '*'.repeat(Math.floor(Math.random() * 4));
-    append(`${h.n}  ${h.ip}  ${h.ms} ms${stars ? ' ' + stars : ''}`);
+  const entries = performance.getEntriesByType('resource');
+  const e = entries.filter(r => r.name.includes(host)).pop();
+
+  if (e) {
+    const dns = (e.domainLookupEnd - e.domainLookupStart).toFixed(2);
+    const tcp = (e.connectEnd - e.connectStart).toFixed(2);
+    const tls = e.secureConnectionStart > 0 ? (e.connectEnd - e.secureConnectionStart).toFixed(2) : null;
+    const ttfb = (e.responseStart - e.requestStart).toFixed(2);
+
+    if (parseFloat(dns) > 0) append(' 2  ' + ip + '  ' + dns + ' ms  [resolve]');
+    if (parseFloat(tcp) > 0) append(' 3  ' + ip + '  ' + tcp + ' ms  [connect]');
+    if (tls && parseFloat(tls) > 0) append(' 4  ' + ip + '  ' + tls + ' ms  [tls]');
+    append(' 5  ' + ip + '  ' + ttfb + ' ms  [ttfb]');
   }
-  append(`\nIt took you ${rtt}ms to get to my website, using the route above.`);
+
+  append('\nIt took you ' + total + 'ms to get to my website, using the route above.');
 }
 trace();
 </script>
