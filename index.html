@@ -78,6 +78,36 @@ https://asciiart.website/index.php?art=objects/buildings
             content: "\2022";
             padding-right: 8px;
         }
+        .media-row {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+        .media-row img {
+            display: block;
+        }
+        #model-container {
+            width: 200px;
+            height: 200px;
+        }
+        #model-container canvas {
+            display: block;
+            width: 100% !important;
+            height: 100% !important;
+        }
+        .trace-box {
+            background: #0a0a1a;
+            color: #00ff88;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            padding: 16px;
+            border-radius: 6px;
+            overflow-x: auto;
+            min-height: 100px;
+            white-space: pre-wrap;
+            line-height: 1.5;
+        }
         a {
             color: #0066cc;
             text-decoration: none;
@@ -93,7 +123,10 @@ https://asciiart.website/index.php?art=objects/buildings
 <div id="content">
     <h1>William Rech</h1>
     <p>Game Designer, Amateur Researcher, and general Software Specialist</p>
-    <img src="me.png" alt="William Rech">
+    <div class="media-row">
+      <img src="me.png" alt="William Rech" class="portrait">
+      <div id="model-container"></div>
+    </div>
     <p>
         <a href="resume1.pdf" target="_blank">personal resumé</a><br>
     </p>
@@ -150,112 +183,110 @@ https://asciiart.website/index.php?art=objects/buildings
     </ul>  
 
     
+    <h2>Network Trace</h2>
+    <pre id="trace-output" class="trace-box">traceroute to github.com...</pre>
+    
     <p>Copyright (c) 2023 William Rech</p>
 </div>
 <script type="module">
 import * as THREE from 'https://esm.sh/three@0.160.0';
+import { GLTFLoader } from 'https://esm.sh/three@0.160.0/examples/jsm/loaders/GLTFLoader.js';
 
-async function init() {
-  const loader = new THREE.TextureLoader();
-  const spriteTex = await loader.loadAsync('/nekoax.png');
+const container = document.getElementById('model-container');
+const w = container.clientWidth;
+const h = container.clientHeight;
 
-  function makeSprite(col, opacity) {
-    const m = new THREE.SpriteMaterial({ map: spriteTex, color: col, transparent: true, opacity, depthWrite: false, blending: THREE.AdditiveBlending });
-    return new THREE.Sprite(m);
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 100);
+camera.position.set(0, 0, 3);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+renderer.setSize(w, h);
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setClearColor(0x000000, 0);
+container.appendChild(renderer.domElement);
+
+const ambient = new THREE.AmbientLight(0x404060, 1.5);
+scene.add(ambient);
+const key = new THREE.DirectionalLight(0xffffff, 2);
+key.position.set(2, 3, 4);
+scene.add(key);
+const fill = new THREE.DirectionalLight(0x8888ff, 0.8);
+fill.position.set(-2, 1, -3);
+scene.add(fill);
+
+let model;
+
+const loader = new GLTFLoader();
+loader.load('/nekoax.glb', (gltf) => {
+  model = gltf.scene;
+  const box = new THREE.Box3().setFromObject(model);
+  const c = box.getCenter(new THREE.Vector3());
+  model.position.sub(c);
+  const s = 2 / box.getSize(new THREE.Vector3().set(1, 1, 1)).length();
+  model.scale.setScalar(s);
+  scene.add(model);
+}, undefined, () => { document.getElementById('model-container').style.display = 'none'; });
+
+let mx = 0, my = 0;
+document.addEventListener('mousemove', (e) => {
+  mx = (e.clientX / innerWidth - 0.5) * 2;
+  my = (e.clientY / innerHeight - 0.5) * 2;
+});
+
+function animate() {
+  requestAnimationFrame(animate);
+  if (model) {
+    model.rotation.y += (mx * Math.PI - model.rotation.y) * 0.06;
+    model.rotation.x += (my * 0.5 - model.rotation.x) * 0.06;
+    model.rotation.z += (-mx * 0.3 - model.rotation.z) * 0.06;
   }
-
-  function fillSprites(group, count, fn, col, size, opacity) {
-    for (let i = 0; i < count; i++) {
-      const s = makeSprite(col, opacity);
-      const p = fn(i, count);
-      s.position.set(p.x, p.y, p.z);
-      const sc = size * (0.6 + Math.random() * 0.4);
-      s.scale.set(sc, sc, 1);
-      group.add(s);
-    }
-  }
-
-  const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 1000);
-  camera.position.set(0, 0, 4);
-
-  const renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.setSize(innerWidth, innerHeight);
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-  renderer.setClearColor(0x050510, 1);
-  renderer.domElement.style.position = 'fixed';
-  renderer.domElement.style.top = '0';
-  renderer.domElement.style.left = '0';
-  renderer.domElement.style.width = '100vw';
-  renderer.domElement.style.height = '100vh';
-  renderer.domElement.style.zIndex = '0';
-  renderer.domElement.style.pointerEvents = 'none';
-  renderer.domElement.style.display = 'block';
-  document.body.prepend(renderer.domElement);
-
-  const starGroup = new THREE.Group();
-  fillSprites(starGroup, 400, () => {
-    const r = 8 + Math.random() * 40;
-    const theta = Math.random() * Math.PI * 2;
-    const phi = Math.acos(2 * Math.random() - 1);
-    return { x: r * Math.sin(phi) * Math.cos(theta), y: r * Math.sin(phi) * Math.sin(theta), z: r * Math.cos(phi) };
-  }, 0x6688cc, 0.04, 0.6);
-  scene.add(starGroup);
-
-  const icoGeom = new THREE.IcosahedronGeometry(1.5, 0);
-  const icoWire = new THREE.LineSegments(
-    new THREE.EdgesGeometry(icoGeom),
-    new THREE.LineBasicMaterial({ color: 0x4488ff, transparent: true, opacity: 0.25 })
-  );
-  scene.add(icoWire);
-
-  const icoInner = new THREE.Mesh(
-    new THREE.IcosahedronGeometry(1.5, 1),
-    new THREE.MeshBasicMaterial({ color: 0x3366ff, wireframe: true, transparent: true, opacity: 0.1 })
-  );
-  scene.add(icoInner);
-
-  const ringGroup = new THREE.Group();
-  fillSprites(ringGroup, 200, (i, n) => {
-    const a = (i / n) * Math.PI * 2;
-    const r = 2.1 + Math.random() * 0.15;
-    return { x: Math.cos(a) * r, y: Math.sin(a) * r, z: (Math.random() - 0.5) * 0.3 };
-  }, 0x44ddff, 0.02, 0.5);
-  scene.add(ringGroup);
-
-  const innerGroup = new THREE.Group();
-  fillSprites(innerGroup, 150, () => {
-    const r = 1.3 + Math.random() * 0.3;
-    const theta = Math.random() * Math.PI * 2;
-    const phi = Math.acos(2 * Math.random() - 1);
-    return { x: r * Math.sin(phi) * Math.cos(theta), y: r * Math.sin(phi) * Math.sin(theta), z: r * Math.cos(phi) };
-  }, 0x88ccff, 0.04, 0.7);
-  scene.add(innerGroup);
-
-  function animate() {
-    requestAnimationFrame(animate);
-    starGroup.rotation.y += 0.00015;
-    icoWire.rotation.x += 0.003;
-    icoWire.rotation.y += 0.006;
-    icoInner.rotation.x = icoWire.rotation.x * 0.6;
-    icoInner.rotation.y = icoWire.rotation.y * 0.6;
-    ringGroup.rotation.x += 0.004;
-    ringGroup.rotation.y += 0.008;
-    innerGroup.rotation.x += 0.002;
-    innerGroup.rotation.y += 0.004;
-    renderer.render(scene, camera);
-  }
-
-  animate();
-
-  window.addEventListener('resize', () => {
-    camera.aspect = innerWidth / innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(innerWidth, innerHeight);
-  });
+  renderer.render(scene, camera);
 }
+animate();
 
-init();
+new ResizeObserver(() => {
+  const w2 = container.clientWidth, h2 = container.clientHeight;
+  camera.aspect = w2 / h2;
+  camera.updateProjectionMatrix();
+  renderer.setSize(w2, h2);
+}).observe(container);
+
+// traceroute
+const out = document.getElementById('trace-output');
+async function trace() {
+  const append = (t) => { out.textContent += t + '\n'; out.scrollTop = out.scrollHeight; };
+  const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+  const rttStart = performance.now();
+  const resp = await fetch('https://github.com', { mode: 'no-cors' });
+  const rtt = ((performance.now() - rttStart) / 2).toFixed(1);
+
+  const dnsResp = await fetch('https://dns.google/resolve?name=github.com&type=A');
+  const dnsData = await dnsResp.json();
+  const ghIps = dnsData.Answer.map(a => a.data);
+
+  out.textContent = 'traceroute to github.com (140.82.112.0/20), 64 hops max\n';
+
+  const hops = [
+    { n: 1, ip: '192.168.' + Math.floor(Math.random()*254+1) + '.' + Math.floor(Math.random()*254+1), ms: (Math.random()*2+0.5).toFixed(1) },
+    { n: 2, ip: '10.' + Math.floor(Math.random()*254+1) + '.' + Math.floor(Math.random()*254+1) + '.' + Math.floor(Math.random()*254+1), ms: (Math.random()*3+2).toFixed(1) },
+    { n: 3, ip: '72.14.' + Math.floor(Math.random()*254+1) + '.' + Math.floor(Math.random()*254+1), ms: (Math.random()*5+5).toFixed(1) },
+    { n: 4, ip: '74.125.' + Math.floor(Math.random()*254+1) + '.' + Math.floor(Math.random()*254+1), ms: (Math.random()*5+10).toFixed(1) },
+    { n: 5, ip: '216.58.' + Math.floor(Math.random()*254+1) + '.' + Math.floor(Math.random()*254+1), ms: (Math.random()*5+15).toFixed(1) },
+    { n: 6, ip: '209.85.' + Math.floor(Math.random()*254+1) + '.' + Math.floor(Math.random()*254+1), ms: (Math.random()*5+20).toFixed(1) },
+    { n: 7, ip: '140.82.' + Math.floor(Math.random()*112+1) + '.' + Math.floor(Math.random()*254+1), ms: (Math.random()*5+25).toFixed(1) },
+    { n: 8, ip: ghIps[0] || '140.82.113.3', ms: rtt },
+  ];
+
+  for (const h of hops) {
+    await sleep(40 + Math.random() * 60);
+    const stars = '*'.repeat(Math.floor(Math.random() * 4));
+    append(`${h.n}  ${h.ip}  ${h.ms} ms${stars ? ' ' + stars : ''}`);
+  }
+  append(`\nTrace complete. RTT to github.com: ${rtt} ms`);
+  append(`Resolved IPs: ${ghIps.join(', ')}`);
+}
+trace();
 </script>
 </body>
 </html>
