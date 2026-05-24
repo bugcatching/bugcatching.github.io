@@ -98,7 +98,7 @@ https://asciiart.website/index.php?art=objects/buildings
         }
         .trace-box {
             font-family: 'Courier New', monospace;
-            font-size: 11px;
+            font-size: 12px;
             line-height: 1.4;
             white-space: pre-wrap;
             overflow-x: auto;
@@ -124,11 +124,11 @@ https://asciiart.website/index.php?art=objects/buildings
     <div class="media-row">
       <img src="me.png" alt="William Rech" class="portrait">
       <div id="model-container"></div>
-      <pre id="trace-output" class="trace-box">traceroute to github.com...</pre>
     </div>
     <p>
         <a href="resume1.pdf" target="_blank">personal resumé</a><br>
     </p>
+    <pre id="trace-output" class="trace-box">traceroute to github.com...</pre>
 
     <h2>Projects</h2>
     <ul>
@@ -279,8 +279,7 @@ async function trace() {
     const stars = '*'.repeat(Math.floor(Math.random() * 4));
     append(`${h.n}  ${h.ip}  ${h.ms} ms${stars ? ' ' + stars : ''}`);
   }
-  append(`\nTrace complete. RTT to github.com: ${rtt} ms`);
-  append(`Resolved IPs: ${ghIps.join(', ')}`);
+  append(`\nIt took you ${rtt}ms to get to my website, using the route above.`);
 }
 trace();
 </script>
