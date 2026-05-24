@@ -87,24 +87,27 @@ https://asciiart.website/index.php?art=objects/buildings
         .media-row img {
             display: block;
         }
-        #model-container {
+        .title-row {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        .title-row h1 {
+            margin: 0;
+        }
+        .title-row p {
+            margin-bottom: 0;
+        }
+        .model-viewer {
             width: 100px;
             height: 100px;
+            flex-shrink: 0;
         }
-        #model-container canvas {
+        .model-viewer canvas {
             display: block;
             width: 100% !important;
             height: 100% !important;
-        }
-        .trace-box {
-            font-family: 'Courier New', monospace;
-            font-size: 13px;
-            line-height: 1.4;
-            white-space: pre-wrap;
-            overflow-x: auto;
-            flex: 1;
-            min-width: 0;
-            margin: 0;
         }
         a {
             color: #0066cc;
@@ -119,11 +122,16 @@ https://asciiart.website/index.php?art=objects/buildings
 <body>
 
 <div id="content">
-    <h1>William Rech</h1>
-    <p>Game Designer, Amateur Researcher, and general Software Specialist</p>
+    <div class="title-row">
+      <div id="model-left" class="model-viewer"></div>
+      <div>
+        <h1>William Rech</h1>
+        <p>Game Designer, Amateur Researcher, and general Software Specialist</p>
+      </div>
+      <div id="model-right" class="model-viewer"></div>
+    </div>
     <div class="media-row">
       <img src="me.png" alt="William Rech" class="portrait">
-      <div id="model-container"></div>
     </div>
     <p>
         <a href="resume1.pdf" target="_blank">personal resumé</a><br>
