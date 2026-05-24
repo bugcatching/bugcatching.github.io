@@ -40,6 +40,7 @@ https://asciiart.website/index.php?art=objects/buildings
             position: relative;
             z-index: 1;
             padding: 20px;
+            padding-left: 100px;
             background: rgba(255, 255, 255, 0.88);
             min-height: 100vh;
         }
@@ -109,6 +110,9 @@ https://asciiart.website/index.php?art=objects/buildings
             width: 100% !important;
             height: 100% !important;
         }
+        .portrait {
+            display: none;
+        }
         a {
             color: #0066cc;
             text-decoration: none;
@@ -130,14 +134,12 @@ https://asciiart.website/index.php?art=objects/buildings
       </div>
       <div id="model-right" class="model-viewer"></div>
     </div>
-    <div class="media-row">
+    <div class="media-row" style="display:none">
       <img src="me.png" alt="William Rech" class="portrait">
     </div>
     <p>
         <a href="resume1.pdf" target="_blank">personal resumé</a><br>
     </p>
-    <pre id="trace-output" class="trace-box">traceroute to github.com...</pre>
-
     <h2>Projects</h2>
     <ul>
         <li>
@@ -228,7 +230,7 @@ new GLTFLoader().load('/nekoax.glb', (gltf) => {
     const m = gltf.scene.clone();
     const box = new THREE.Box3().setFromObject(m);
     m.position.sub(box.getCenter(new THREE.Vector3()));
-    m.scale.setScalar(2 / box.getSize(new THREE.Vector3()).length());
+    m.scale.setScalar(3 / box.getSize(new THREE.Vector3()).length());
     scene.add(m); return m;
   };
   mL = add(left.scene);
