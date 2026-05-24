@@ -97,8 +97,6 @@ https://asciiart.website/index.php?art=objects/buildings
     <p>
         <a href="resume1.pdf" target="_blank">personal resumé</a><br>
     </p>
-    <img src="construction1.gif" alt=""><img src="construction2.gif" alt="">
-
 
     <h2>Projects</h2>
     <ul>
@@ -157,103 +155,107 @@ https://asciiart.website/index.php?art=objects/buildings
 <script type="module">
 import * as THREE from 'https://esm.sh/three@0.160.0';
 
-const loader = new THREE.TextureLoader();
-const spriteTex = loader.load('nekoax.png');
+async function init() {
+  const loader = new THREE.TextureLoader();
+  const spriteTex = await loader.loadAsync('/nekoax.png');
 
-function makeSprite(col, size, opacity) {
-  const m = new THREE.SpriteMaterial({ map: spriteTex, color: col, transparent: true, opacity, depthWrite: false, blending: THREE.AdditiveBlending });
-  return new THREE.Sprite(m);
-}
-
-function fillSprites(group, count, fn, col, size, opacity) {
-  for (let i = 0; i < count; i++) {
-    const s = makeSprite(col, size, opacity);
-    const p = fn(i, count);
-    s.position.set(p.x, p.y, p.z);
-    const sc = size * (0.6 + Math.random() * 0.4);
-    s.scale.set(sc, sc, 1);
-    group.add(s);
+  function makeSprite(col, opacity) {
+    const m = new THREE.SpriteMaterial({ map: spriteTex, color: col, transparent: true, opacity, depthWrite: false, blending: THREE.AdditiveBlending });
+    return new THREE.Sprite(m);
   }
-}
 
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 1000);
-camera.position.set(0, 0, 4);
+  function fillSprites(group, count, fn, col, size, opacity) {
+    for (let i = 0; i < count; i++) {
+      const s = makeSprite(col, opacity);
+      const p = fn(i, count);
+      s.position.set(p.x, p.y, p.z);
+      const sc = size * (0.6 + Math.random() * 0.4);
+      s.scale.set(sc, sc, 1);
+      group.add(s);
+    }
+  }
 
-const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setSize(innerWidth, innerHeight);
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-renderer.setClearColor(0x050510, 1);
-renderer.domElement.style.position = 'fixed';
-renderer.domElement.style.top = '0';
-renderer.domElement.style.left = '0';
-renderer.domElement.style.width = '100vw';
-renderer.domElement.style.height = '100vh';
-renderer.domElement.style.zIndex = '0';
-renderer.domElement.style.pointerEvents = 'none';
-renderer.domElement.style.display = 'block';
-document.body.prepend(renderer.domElement);
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 1000);
+  camera.position.set(0, 0, 4);
 
-const starGroup = new THREE.Group();
-fillSprites(starGroup, 400, () => {
-  const r = 8 + Math.random() * 40;
-  const theta = Math.random() * Math.PI * 2;
-  const phi = Math.acos(2 * Math.random() - 1);
-  return { x: r * Math.sin(phi) * Math.cos(theta), y: r * Math.sin(phi) * Math.sin(theta), z: r * Math.cos(phi) };
-}, 0x6688cc, 0.04, 0.6);
-scene.add(starGroup);
-
-const icoGeom = new THREE.IcosahedronGeometry(1.5, 0);
-const icoWire = new THREE.LineSegments(
-  new THREE.EdgesGeometry(icoGeom),
-  new THREE.LineBasicMaterial({ color: 0x4488ff, transparent: true, opacity: 0.25 })
-);
-scene.add(icoWire);
-
-const icoInner = new THREE.Mesh(
-  new THREE.IcosahedronGeometry(1.5, 1),
-  new THREE.MeshBasicMaterial({ color: 0x3366ff, wireframe: true, transparent: true, opacity: 0.1 })
-);
-scene.add(icoInner);
-
-const ringGroup = new THREE.Group();
-fillSprites(ringGroup, 200, (i, n) => {
-  const a = (i / n) * Math.PI * 2;
-  const r = 2.1 + Math.random() * 0.15;
-  return { x: Math.cos(a) * r, y: Math.sin(a) * r, z: (Math.random() - 0.5) * 0.3 };
-}, 0x44ddff, 0.02, 0.5);
-scene.add(ringGroup);
-
-const innerGroup = new THREE.Group();
-fillSprites(innerGroup, 150, () => {
-  const r = 1.3 + Math.random() * 0.3;
-  const theta = Math.random() * Math.PI * 2;
-  const phi = Math.acos(2 * Math.random() - 1);
-  return { x: r * Math.sin(phi) * Math.cos(theta), y: r * Math.sin(phi) * Math.sin(theta), z: r * Math.cos(phi) };
-}, 0x88ccff, 0.04, 0.7);
-scene.add(innerGroup);
-
-function animate() {
-  requestAnimationFrame(animate);
-  starGroup.rotation.y += 0.00015;
-  icoWire.rotation.x += 0.003;
-  icoWire.rotation.y += 0.006;
-  icoInner.rotation.x = icoWire.rotation.x * 0.6;
-  icoInner.rotation.y = icoWire.rotation.y * 0.6;
-  ringGroup.rotation.x += 0.004;
-  ringGroup.rotation.y += 0.008;
-  innerGroup.rotation.x += 0.002;
-  innerGroup.rotation.y += 0.004;
-  renderer.render(scene, camera);
-}
-
-animate();
-
-window.addEventListener('resize', () => {
-  camera.aspect = innerWidth / innerHeight;
-  camera.updateProjectionMatrix();
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setSize(innerWidth, innerHeight);
-});
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setClearColor(0x050510, 1);
+  renderer.domElement.style.position = 'fixed';
+  renderer.domElement.style.top = '0';
+  renderer.domElement.style.left = '0';
+  renderer.domElement.style.width = '100vw';
+  renderer.domElement.style.height = '100vh';
+  renderer.domElement.style.zIndex = '0';
+  renderer.domElement.style.pointerEvents = 'none';
+  renderer.domElement.style.display = 'block';
+  document.body.prepend(renderer.domElement);
+
+  const starGroup = new THREE.Group();
+  fillSprites(starGroup, 400, () => {
+    const r = 8 + Math.random() * 40;
+    const theta = Math.random() * Math.PI * 2;
+    const phi = Math.acos(2 * Math.random() - 1);
+    return { x: r * Math.sin(phi) * Math.cos(theta), y: r * Math.sin(phi) * Math.sin(theta), z: r * Math.cos(phi) };
+  }, 0x6688cc, 0.04, 0.6);
+  scene.add(starGroup);
+
+  const icoGeom = new THREE.IcosahedronGeometry(1.5, 0);
+  const icoWire = new THREE.LineSegments(
+    new THREE.EdgesGeometry(icoGeom),
+    new THREE.LineBasicMaterial({ color: 0x4488ff, transparent: true, opacity: 0.25 })
+  );
+  scene.add(icoWire);
+
+  const icoInner = new THREE.Mesh(
+    new THREE.IcosahedronGeometry(1.5, 1),
+    new THREE.MeshBasicMaterial({ color: 0x3366ff, wireframe: true, transparent: true, opacity: 0.1 })
+  );
+  scene.add(icoInner);
+
+  const ringGroup = new THREE.Group();
+  fillSprites(ringGroup, 200, (i, n) => {
+    const a = (i / n) * Math.PI * 2;
+    const r = 2.1 + Math.random() * 0.15;
+    return { x: Math.cos(a) * r, y: Math.sin(a) * r, z: (Math.random() - 0.5) * 0.3 };
+  }, 0x44ddff, 0.02, 0.5);
+  scene.add(ringGroup);
+
+  const innerGroup = new THREE.Group();
+  fillSprites(innerGroup, 150, () => {
+    const r = 1.3 + Math.random() * 0.3;
+    const theta = Math.random() * Math.PI * 2;
+    const phi = Math.acos(2 * Math.random() - 1);
+    return { x: r * Math.sin(phi) * Math.cos(theta), y: r * Math.sin(phi) * Math.sin(theta), z: r * Math.cos(phi) };
+  }, 0x88ccff, 0.04, 0.7);
+  scene.add(innerGroup);
+
+  function animate() {
+    requestAnimationFrame(animate);
+    starGroup.rotation.y += 0.00015;
+    icoWire.rotation.x += 0.003;
+    icoWire.rotation.y += 0.006;
+    icoInner.rotation.x = icoWire.rotation.x * 0.6;
+    icoInner.rotation.y = icoWire.rotation.y * 0.6;
+    ringGroup.rotation.x += 0.004;
+    ringGroup.rotation.y += 0.008;
+    innerGroup.rotation.x += 0.002;
+    innerGroup.rotation.y += 0.004;
+    renderer.render(scene, camera);
+  }
+
+  animate();
+
+  window.addEventListener('resize', () => {
+    camera.aspect = innerWidth / innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth, innerHeight);
+  });
+}
+
+init();
 </script>
 </body>
 </html>
