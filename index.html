@@ -196,41 +196,44 @@ https://asciiart.website/index.php?art=objects/buildings
 import * as THREE from 'https://esm.sh/three@0.160.0';
 import { GLTFLoader } from 'https://esm.sh/three@0.160.0/examples/jsm/loaders/GLTFLoader.js';
 
-const container = document.getElementById('model-container');
-const w = container.clientWidth;
-const h = container.clientHeight;
+function setupViewer(id) {
+  const el = document.getElementById(id);
+  const w = el.clientWidth, h = el.clientHeight;
+  const s = new THREE.Scene();
+  const c = new THREE.PerspectiveCamera(45, w / h, 0.1, 100);
+  c.position.set(0, 0, 3);
+  const r = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  r.setSize(w, h);
+  r.setPixelRatio(Math.min(devicePixelRatio, 2));
+  r.setClearColor(0x000000, 0);
+  el.appendChild(r.domElement);
+  s.add(new THREE.AmbientLight(0x404060, 1.5));
+  const k = new THREE.DirectionalLight(0xffffff, 2);
+  k.position.set(2, 3, 4); s.add(k);
+  const f = new THREE.DirectionalLight(0x8888ff, 0.8);
+  f.position.set(-2, 1, -3); s.add(f);
+  new ResizeObserver(() => {
+    const w2 = el.clientWidth, h2 = el.clientHeight;
+    c.aspect = w2 / h2; c.updateProjectionMatrix(); r.setSize(w2, h2);
+  }).observe(el);
+  return { scene: s, camera: c, renderer: r };
+}
 
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 100);
-camera.position.set(0, 0, 3);
+const left = setupViewer('model-left');
+const right = setupViewer('model-right');
+let mL, mR;
 
-const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-renderer.setSize(w, h);
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-renderer.setClearColor(0x000000, 0);
-container.appendChild(renderer.domElement);
-
-const ambient = new THREE.AmbientLight(0x404060, 1.5);
-scene.add(ambient);
-const key = new THREE.DirectionalLight(0xffffff, 2);
-key.position.set(2, 3, 4);
-scene.add(key);
-const fill = new THREE.DirectionalLight(0x8888ff, 0.8);
-fill.position.set(-2, 1, -3);
-scene.add(fill);
-
-let model;
-
-const loader = new GLTFLoader();
-loader.load('/nekoax.glb', (gltf) => {
-  model = gltf.scene;
-  const box = new THREE.Box3().setFromObject(model);
-  const c = box.getCenter(new THREE.Vector3());
-  model.position.sub(c);
-  const s = 2 / box.getSize(new THREE.Vector3().set(1, 1, 1)).length();
-  model.scale.setScalar(s);
-  scene.add(model);
-}, undefined, () => { document.getElementById('model-container').style.display = 'none'; });
+new GLTFLoader().load('/nekoax.glb', (gltf) => {
+  const add = (scene) => {
+    const m = gltf.scene.clone();
+    const box = new THREE.Box3().setFromObject(m);
+    m.position.sub(box.getCenter(new THREE.Vector3()));
+    m.scale.setScalar(2 / box.getSize(new THREE.Vector3()).length());
+    scene.add(m); return m;
+  };
+  mL = add(left.scene);
+  mR = add(right.scene);
+});
 
 let mx = 0, my = 0;
 document.addEventListener('mousemove', (e) => {
@@ -240,61 +243,13 @@ document.addEventListener('mousemove', (e) => {
 
 function animate() {
   requestAnimationFrame(animate);
-  if (model) {
-    model.rotation.y += (mx * Math.PI - model.rotation.y) * 0.06;
-    model.rotation.x += (my * 0.5 - model.rotation.x) * 0.06;
-    model.rotation.z += (-mx * 0.3 - model.rotation.z) * 0.06;
-  }
-  renderer.render(scene, camera);
+  const ry = mx * Math.PI, rx = my * 0.5, rz = -mx * 0.3;
+  if (mL) { mL.rotation.y += (ry - mL.rotation.y) * 0.06; mL.rotation.x += (rx - mL.rotation.x) * 0.06; mL.rotation.z += (rz - mL.rotation.z) * 0.06; }
+  if (mR) { mR.rotation.y += (ry - mR.rotation.y) * 0.06; mR.rotation.x += (rx - mR.rotation.x) * 0.06; mR.rotation.z += (rz - mR.rotation.z) * 0.06; }
+  left.renderer.render(left.scene, left.camera);
+  right.renderer.render(right.scene, right.camera);
 }
 animate();
-
-new ResizeObserver(() => {
-  const w2 = container.clientWidth, h2 = container.clientHeight;
-  camera.aspect = w2 / h2;
-  camera.updateProjectionMatrix();
-  renderer.setSize(w2, h2);
-}).observe(container);
-
-// real network trace
-const out = document.getElementById('trace-output');
-async function trace() {
-  const append = (t) => { out.textContent += t + '\n'; };
-  const host = 'bugcatching.github.io';
-  const target = 'https://' + host + '/';
-
-  out.textContent = 'traceroute to ' + host + '\n\n';
-
-  const dnsResp = await fetch('https://dns.google/resolve?name=' + host + '&type=A');
-  const dnsData = await dnsResp.json();
-  const ips = dnsData.Answer.map(a => a.data);
-  const ip = ips[0] || 'unknown';
-
-  append(' 1  ' + host + ' (' + ip + ')  [DNS]');
-
-  performance.clearResourceTimings();
-  const start = performance.now();
-  await fetch(target);
-  const total = (performance.now() - start).toFixed(2);
-
-  const entries = performance.getEntriesByType('resource');
-  const e = entries.filter(r => r.name.includes(host)).pop();
-
-  if (e) {
-    const dns = (e.domainLookupEnd - e.domainLookupStart).toFixed(2);
-    const tcp = (e.connectEnd - e.connectStart).toFixed(2);
-    const tls = e.secureConnectionStart > 0 ? (e.connectEnd - e.secureConnectionStart).toFixed(2) : null;
-    const ttfb = (e.responseStart - e.requestStart).toFixed(2);
-
-    if (parseFloat(dns) > 0) append(' 2  ' + ip + '  ' + dns + ' ms  [resolve]');
-    if (parseFloat(tcp) > 0) append(' 3  ' + ip + '  ' + tcp + ' ms  [connect]');
-    if (tls && parseFloat(tls) > 0) append(' 4  ' + ip + '  ' + tls + ' ms  [tls]');
-    append(' 5  ' + ip + '  ' + ttfb + ' ms  [ttfb]');
-  }
-
-  append('\nIt took you ' + total + 'ms to get to my website, using the route above.');
-}
-trace();
 </script>
 </body>
 </html>
