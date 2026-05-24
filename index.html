@@ -33,11 +33,16 @@ https://asciiart.website/index.php?art=objects/buildings
         body {
             font-family: Arial, sans-serif;
             line-height: 1.6;
-            margin: 20px;
+            margin: 0;
+            min-height: 100vh;
         }
-          canvas {
-      display: block;
-    }
+        #content {
+            position: relative;
+            z-index: 1;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.88);
+            min-height: 100vh;
+        }
 
         h1 {
             font-size: 28px;
@@ -78,6 +83,7 @@ https://asciiart.website/index.php?art=objects/buildings
   
 <body>
 
+<div id="content">
     <h1>William Rech</h1>
     <img src="me.png" alt="William Rech">
     <p>
@@ -134,6 +140,7 @@ https://asciiart.website/index.php?art=objects/buildings
     </ul>-->
     
     <p>Copyright (c) 2023 William Rech</p>
+</div>
 <script type="module">
   import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js';
 
@@ -144,7 +151,16 @@ https://asciiart.website/index.php?art=objects/buildings
   const renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setSize(innerWidth, innerHeight);
   renderer.setClearColor(0x000000, 1);
-  document.body.appendChild(renderer.domElement);
+  renderer.domElement.style.position = 'fixed';
+  renderer.domElement.style.top = '0';
+  renderer.domElement.style.left = '0';
+  renderer.domElement.style.width = '100vw';
+  renderer.domElement.style.height = '100vh';
+  renderer.domElement.style.zIndex = '0';
+  renderer.domElement.style.pointerEvents = 'none';
+  renderer.domElement.style.display = 'block';
+  renderer.domElement.style.inset = '0';
+  document.body.prepend(renderer.domElement);
 
 
   const particleCount = 800;
@@ -191,16 +207,19 @@ https://asciiart.website/index.php?art=objects/buildings
 
   transmissionMesh.add(particles);
 
+  const _pos = new THREE.Vector3();
+  const _m = new THREE.Matrix4();
+  const _viewRotation = new THREE.Matrix4();
+  const _inverseRotation = new THREE.Matrix4();
   function updateBillboards() {
     const view = camera.matrixWorldInverse;
-    const rotation = new THREE.Matrix4().extractRotation(view);
-    const inverse = new THREE.Matrix4().copy(rotation).invert();
-    const m = new THREE.Matrix4();
+    _viewRotation.extractRotation(view);
+    _inverseRotation.copy(_viewRotation).invert();
     for (let i = 0; i < particleCount; i++) {
-      particles.getMatrixAt(i, m);
-      const pos = new THREE.Vector3().setFromMatrixPosition(m);
-      dummy.position.copy(pos);
-      dummy.quaternion.setFromRotationMatrix(inverse);
+      particles.getMatrixAt(i, _m);
+      _pos.setFromMatrixPosition(_m);
+      dummy.position.copy(_pos);
+      dummy.quaternion.setFromRotationMatrix(_inverseRotation);
       dummy.updateMatrix();
       particles.setMatrixAt(i, dummy.matrix);
     }
@@ -224,8 +243,5 @@ https://asciiart.website/index.php?art=objects/buildings
     renderer.setSize(innerWidth, innerHeight);
   });
 </script>
-</body>
-</html>
-
 </body>
 </html>
